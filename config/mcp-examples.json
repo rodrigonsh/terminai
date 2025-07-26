@@ -1,0 +1,163 @@
+{
+  "mcp_servers_examples": [
+    {
+      "name": "filesystem",
+      "description": "Provides filesystem operations like reading, writing, and searching files",
+      "type": "stdio",
+      "command": "mcp-server-filesystem",
+      "args": ["/home/user", "/var/log", "/etc"],
+      "env": {},
+      "installation": "npm install -g @modelcontextprotocol/server-filesystem"
+    },
+    {
+      "name": "github",
+      "description": "Provides GitHub API access for repositories, issues, and pull requests",
+      "type": "stdio",
+      "command": "mcp-server-github",
+      "args": [],
+      "env": {
+        "GITHUB_TOKEN": "your-github-personal-access-token"
+      },
+      "installation": "npm install -g @modelcontextprotocol/server-github"
+    },
+    {
+      "name": "postgresql",
+      "description": "Provides PostgreSQL database operations",
+      "type": "stdio",
+      "command": "mcp-server-postgresql",
+      "args": [],
+      "env": {
+        "POSTGRES_URL": "postgresql://username:password@localhost:5432/database_name"
+      },
+      "installation": "npm install -g @modelcontextprotocol/server-postgresql"
+    },
+    {
+      "name": "sqlite",
+      "description": "Provides SQLite database operations",
+      "type": "stdio",
+      "command": "mcp-server-sqlite",
+      "args": ["/path/to/database.db"],
+      "env": {},
+      "installation": "npm install -g @modelcontextprotocol/server-sqlite"
+    },
+    {
+      "name": "brave-search",
+      "description": "Provides web search capabilities using Brave Search API",
+      "type": "stdio",
+      "command": "mcp-server-brave-search",
+      "args": [],
+      "env": {
+        "BRAVE_API_KEY": "your-brave-search-api-key"
+      },
+      "installation": "npm install -g @modelcontextprotocol/server-brave-search"
+    },
+    {
+      "name": "web-search",
+      "description": "Provides web search capabilities using SERP API",
+      "type": "stdio",
+      "command": "mcp-server-web-search",
+      "args": [],
+      "env": {
+        "SERP_API_KEY": "your-serp-api-key"
+      },
+      "installation": "npm install -g @modelcontextprotocol/server-web-search"
+    },
+    {
+      "name": "fetch",
+      "description": "Provides HTTP fetching capabilities for web content",
+      "type": "stdio",
+      "command": "mcp-server-fetch",
+      "args": [],
+      "env": {},
+      "installation": "npm install -g @modelcontextprotocol/server-fetch"
+    },
+    {
+      "name": "memory",
+      "description": "Provides persistent memory storage across sessions",
+      "type": "stdio",
+      "command": "mcp-server-memory",
+      "args": [],
+      "env": {},
+      "installation": "npm install -g @modelcontextprotocol/server-memory"
+    },
+    {
+      "name": "time",
+      "description": "Provides current time and date information",
+      "type": "stdio",
+      "command": "mcp-server-time",
+      "args": [],
+      "env": {},
+      "installation": "npm install -g @modelcontextprotocol/server-time"
+    },
+    {
+      "name": "remote-github",
+      "description": "Remote GitHub API access via HTTP",
+      "type": "http",
+      "url": "https://mcp-server.example.com/github",
+      "headers": {
+        "Authorization": "Bearer your-token-here"
+      }
+    },
+    {
+      "name": "remote-filesystem",
+      "description": "Remote filesystem operations via SSE",
+      "type": "sse",
+      "url": "https://mcp-server.example.com/filesystem",
+      "headers": {
+        "X-API-Key": "your-api-key"
+      }
+    },
+    {
+      "name": "remote-postgresql",
+      "description": "Remote PostgreSQL operations via HTTP",
+      "type": "http",
+      "url": "https://mcp-server.example.com/postgresql",
+      "headers": {
+        "Authorization": "Bearer your-token-here"
+      }
+    }
+  ],
+  "usage_instructions": {
+    "installation": "Install MCP servers using npm or your preferred package manager",
+    "configuration": "Add server configurations to your ~/.terminai/config.json under mcp.servers",
+    "example_config": {
+      "mcp": {
+        "servers": [
+          {
+            "name": "filesystem",
+            "type": "stdio",
+            "command": "mcp-server-filesystem",
+            "args": ["/home/user"],
+            "env": {}
+          },
+          {
+            "name": "github",
+            "type": "stdio",
+            "command": "mcp-server-github",
+            "args": [],
+            "env": {
+              "GITHUB_TOKEN": "ghp_your_token_here"
+            }
+          },
+          {
+            "name": "remote-github",
+            "type": "http",
+            "url": "https://mcp-server.example.com/github",
+            "headers": {
+              "Authorization": "Bearer your-token-here"
+            }
+          },
+          {
+            "name": "remote-filesystem",
+            "type": "sse",
+            "url": "https://mcp-server.example.com/filesystem",
+            "headers": {
+              "X-API-Key": "your-api-key"
+            }
+          }
+        ],
+        "auto_discover": true
+      }
+    }
+  }
+}

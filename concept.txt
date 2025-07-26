@@ -1,0 +1,3 @@
+ eu queria um terminal pro meu debian onde eu pudesse digitar comandos bash e também cadastrar minha api pra llm de tal forma que se não for um comando bash o texto seja interpretado pela LLM que gerará um comando bash.
+
+ Considere múltiplos provedores de LLMS e também MCP

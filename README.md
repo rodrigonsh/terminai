@@ -1,0 +1,409 @@
+# Terminai - Intelligent Terminal with LLM Integration
+
+Terminai is a powerful, extensible terminal application for Debian that combines traditional bash command execution with intelligent natural language processing powered by Large Language Models (LLMs). It supports multiple LLM providers and MCP (Model Context Protocol) servers for extended functionality.
+
+## 🚀 Features
+
+### ✅ Core Terminal Features
+- **SSH Compatible**: Works perfectly over SSH connections
+- **Command History**: Persistent history with up/down arrow navigation
+- **Tab Completion**: Bash-style tab completion for commands and paths
+- **Multi-session Support**: Each terminal instance maintains its own context
+- **Safety First**: Built-in command safety checks and confirmation prompts
+
+### 🤖 LLM Integration
+- **Extensible Provider System**: Support for any LLM provider via configuration
+- **Natural Language Processing**: Convert natural language to bash commands
+- **Multiple Providers**: Built-in support for OpenAI, Anthropic, Google, DeepSeek, and OpenRouter
+- **Easy Extension**: Add new providers without code changes
+
+### 🔧 Tool-Calling Support
+- **Built-in Tools**: Execute commands, read/write files, search, and more
+- **Function Calling**: LLMs can use tools to accomplish complex tasks
+- **Tool Registry**: Centralized tool management system
+- **MCP Integration**: Connect to MCP servers for additional tools
+
+### 🔧 MCP Support
+- **MCP Client**: Connect to MCP servers for extended functionality
+- **Tool Discovery**: List and use tools from MCP servers
+- **Resource Access**: Read resources from MCP servers
+- **Configuration-Driven**: MCP servers defined in configuration
+
+### ⚙️ Configuration
+- **JSON Configuration**: Simple JSON-based configuration
+- **Environment Variables**: Support for API keys via environment variables
+- **Keyring Integration**: Planned support for secure key storage
+- **Per-user Configuration**: Isolated configuration per user
+
+## 📦 Installation
+
+### Quick Install
+```bash
+git clone <repository-url>
+cd terminai
+./install.sh
+```
+
+### Manual Install
+```bash
+cd terminai
+pip3 install -e .
+```
+
+### Requirements
+- Python 3.8 or higher
+- Debian/Ubuntu or compatible Linux distribution
+
+## 🔧 Configuration
+
+### Basic Setup
+1. Install terminai
+2. Edit `~/.terminai/config.json` to add your API keys
+3. Run `terminai` to start using the intelligent terminal
+
+### Example Configuration
+```json
+{
+  "llm": {
+    "default_provider": "openai",
+    "providers": {
+      "openai": {
+        "type": "openai",
+        "model": "gpt-3.5-turbo",
+        "api_key": "your-openai-api-key",
+        "base_url": null,
+        "max_tokens": 150,
+        "temperature": 0.1
+      },
+      "anthropic": {
+        "type": "anthropic",
+        "model": "claude-3-haiku-20240307",
+        "api_key": "your-anthropic-api-key",
+        "max_tokens": 150,
+        "temperature": 0.1
+      },
+      "google": {
+        "type": "google",
+        "model": "gemini-pro",
+        "api_key": "your-google-api-key",
+        "max_tokens": 150,
+        "temperature": 0.1
+      },
+      "deepseek": {
+        "type": "deepseek",
+        "model": "deepseek-chat",
+        "api_key": "your-deepseek-api-key",
+        "base_url": "https://api.deepseek.com/v1",
+        "max_tokens": 150,
+        "temperature": 0.1
+      },
+      "openrouter": {
+        "type": "openrouter",
+        "model": "openai/gpt-3.5-turbo",
+        "api_key": "your-openrouter-api-key",
+        "base_url": "https://openrouter.ai/api/v1",
+        "max_tokens": 150,
+        "temperature": 0.1
+      }
+    }
+  },
+  "mcp": {
+    "servers": [],
+    "auto_discover": true
+  },
+  "tools": {
+    "enabled": true,
+    "confirm_tool_calls": true,
+    "builtin_tools": {
+      "execute_command": true,
+      "read_file": true,
+      "write_to_file": true,
+      "replace_in_file": true,
+      "list_files": true,
+      "search_files": true
+    }
+  },
+  "terminal": {
+    "history_file": "~/.terminai/history",
+    "max_history": 1000,
+    "prompt": "terminai> ",
+    "confirm_commands": true,
+    "timeout": 30
+  },
+  "bash": {
+    "shell": "/bin/bash",
+    "safe_mode": true,
+    "allowed_commands": null,
+    "forbidden_commands": ["rm -rf /", "sudo", "su"]
+  }
+}
+```
+
+### Environment Variables
+You can also use environment variables for API keys:
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+export GOOGLE_API_KEY="your-google-api-key"
+export DEEPSEEK_API_KEY="your-deepseek-api-key"
+export OPENROUTER_API_KEY="your-openrouter-api-key"
+```
+
+## 🎯 Usage
+
+### Starting the Terminal
+```bash
+terminai
+```
+
+### Basic Usage
+```bash
+# Direct bash commands
+terminai> ls -la
+total 48
+drwxr-xr-x  6 user user 4096 Jul 26 08:00 .
+drwxr-xr-x  3 user user 4096 Jul 26 08:00 ..
+-rw-r--r--  1 user user  123 Jul 26 08:00 README.md
+```
+
+### With LLM and Tool-Calling
+```bash
+terminai> list all python files
+╭─────── Tool Call ───────╮
+│ Calling tool: list_files│
+│ Arguments: {            │
+│   "path": ".",          │
+│   "recursive": true     │
+│ }                       │
+╰─────────────────────────╯
+Execute this tool call? [y/n]: y
+╭─────── Tool Result: list_files ───────╮
+│ file1.py                              │
+│ file2.py                              │
+│ subdir/file3.py                       │
+╰─────────────────────────────────────╯
+
+terminai> read the README.md file
+╭─────── Tool Call ───────╮
+│ Calling tool: read_file   │
+│ Arguments: {            │
+│   "path": "README.md"   │
+│ }                       │
+╰─────────────────────────╯
+Execute this tool call? [y/n]: y
+╭─────── Tool Result: read_file ───────╮
+│ # Project README                      │
+│ This is the project documentation...  │
+╰─────────────────────────────────────╯
+
+terminai> search for files containing "test"
+╭─────── Tool Call ───────╮
+│ Calling tool: search_files│
+│ Arguments: {            │
+│   "pattern": "test",      │
+│   "path": ".",          │
+│   "recursive": true     │
+│ }                       │
+╰─────────────────────────╯
+Execute this tool call? [y/n]: y
+╭─────── Tool Result: search_files ───────╮
+│ test_file.py                            │
+│ tests/test_utils.py                     │
+│ test_config.json                        │
+╰───────────────────────────────────────╯
+```
+
+### Special Commands
+- `!help` - Show help information
+- `!providers` - List available LLM providers
+- `!config` - Show current configuration
+- `!mcp` - MCP server commands
+- `!tools` - Tool management commands
+- `!exit` or `!quit` - Exit the terminal
+
+### Tool Commands
+- `!tools list` - List available tools
+- `!tools info <tool>` - Show tool information
+
+### MCP Commands
+- `!mcp list` - List connected MCP servers
+- `!mcp tools <server>` - List tools from server
+
+## 🏗️ Architecture
+
+### Dynamic Provider Loading
+Terminai uses a dynamic provider system that loads LLM providers based on configuration:
+
+```json
+{
+  "llm": {
+    "providers": {
+      "my_custom_provider": {
+        "type": "custom",
+        "model": "custom-model",
+        "api_key": "key"
+      }
+    }
+  }
+}
+```
+
+To add a new provider:
+1. Create `terminai/llm/providers/custom_provider.py`
+2. Implement the `CustomProvider` class extending `LLMProvider`
+3. Add configuration to `~/.terminai/config.json`
+
+### Tool System Architecture
+The tool system allows LLMs to use functions to accomplish tasks:
+
+**Built-in Tools:**
+- `execute_command` - Execute bash commands
+- `read_file` - Read file contents
+- `write_to_file` - Write content to files
+- `replace_in_file` - Replace content in files
+- `list_files` - List directory contents
+- `search_files` - Search for files/content
+
+**Tool Schema Example:**
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "execute_command",
+    "description": "Execute a bash command",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "command": {"type": "string", "description": "The bash command to execute"}
+      },
+      "required": ["command"]
+    }
+  }
+}
+```
+
+### MCP Server Configuration
+MCP servers are configured in the configuration file:
+
+```json
+{
+  "mcp": {
+    "servers": [
+      {
+        "name": "filesystem",
+        "command": "mcp-server-filesystem",
+        "args": ["/home/user"]
+      }
+    ]
+  }
+}
+```
+
+## 🛠️ Development
+
+### Project Structure
+```
+terminai/
+├── terminai/                 # Main package
+│   ├── terminal.py         # Terminal interface
+│   ├── config/             # Configuration management
+│   ├── llm/               # LLM providers
+│   ├── tools/              # Tool system
+│   ├── mcp/               # MCP client
+│   └── utils/             # Utilities
+├── config/default.json      # Default configuration
+├── setup.py                # Installation script
+├── install.sh             # Easy installation
+└── README.md              # This file
+```
+
+### Adding New LLM Providers
+1. Create a new provider file in `terminai/llm/providers/`
+2. Implement the provider class extending `LLMProvider`
+3. Add configuration to `config/default.json`
+4. Test with the provided test script
+
+### Example Provider
+```python
+# terminai/llm/providers/my_provider.py
+from .base import LLMProvider, LLMMessage, LLMResponse
+
+class MyProvider(LLMProvider):
+    async def generate(self, messages: List[LLMMessage], tools: Optional[List[Dict[str, Any]]] = None) -> LLMResponse:
+        # Implementation here
+        pass
+    
+    def is_configured(self) -> bool:
+        return bool(self.config.get("api_key"))
+    
+    def get_required_config(self) -> List[str]:
+        return ["api_key"]
+```
+
+### Adding New Tools
+1. Create a new tool function in `terminai/tools/`
+2. Register it with the ToolManager
+3. Update configuration if needed
+
+## 📝 Examples
+
+### Basic Usage
+```bash
+$ terminai
+Welcome to Terminai!
+Type !help for commands, or just start typing!
+terminai> ls -la
+total 48
+drwxr-xr-x  6 user user 4096 Jul 26 08:00 .
+drwxr-xr-x  3 user user 4096 Jul 26 08:00 ..
+-rw-r--r--  1 user user  123 Jul 26 08:00 README.md
+```
+
+### With LLM and Tools
+```bash
+terminai> find all python files modified today
+# Uses AI with tools to find and list files
+
+terminai> create a new file called hello.txt with "Hello World"
+# Uses AI with write_to_file tool
+
+terminai> search for TODO comments in all python files
+# Uses AI with search_files tool
+```
+
+### Configuration Check
+```bash
+terminai> !providers
+Available LLM Providers:
+  ✓ openai
+  ✓ anthropic
+  ✓ google
+  ✓ deepseek
+  ✓ openrouter
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
+
+### Development Setup
+```bash
+git clone <repository-url>
+cd terminai
+pip install -e .
+```
+
+### Testing
+```bash
+python test_providers.py
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Rich](https://github.com/Textualize/rich) for beautiful terminal output
+- Uses [MCP](https://github.com/modelcontextprotocol) for extensibility
+- Inspired by modern terminal applications and AI assistants

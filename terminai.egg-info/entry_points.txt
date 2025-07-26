@@ -1,0 +1,2 @@
+[console_scripts]
+terminai = terminai.main:main
