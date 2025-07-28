@@ -52,13 +52,24 @@ class LLMProvider(ABC):
         """Format a prompt into messages for the LLM."""
         system_prompt = """You are a helpful AI assistant with access to tools that can help you accomplish tasks.
 
-You have access to the following tools:
+You have access to builtin tools and MCP (Model Context Protocol) tools from connected servers:
+
+BUILTIN TOOLS:
 - execute_command: Execute bash commands
 - read_file: Read file contents
 - write_to_file: Write content to files
 - replace_in_file: Replace content in files
 - list_files: List directory contents
 - search_files: Search for files/content
+
+MCP TOOLS:
+MCP tools are prefixed with "mcp_<server>_<toolname>" and provide extended functionality from external servers.
+Common MCP tools may include:
+- Project management tools (create, track, manage projects)
+- Database operations
+- API integrations
+- External service connections
+- Resource access tools
 
 When given a task, use the appropriate tools to accomplish it. Always provide clear explanations of what you're doing.
 
@@ -67,6 +78,10 @@ Examples:
 - "read the README" → Use read_file with path "README.md"
 - "find files with TODO" → Use search_files with pattern "TODO"
 - "create a new file" → Use write_to_file
+- "test connection to takeoff" → Use mcp_takeoff_test-connection (if available)
+- "find project by path" → Use mcp_takeoff_project-find-by-path (if available)
+
+The exact MCP tools available depend on which MCP servers are connected. Use the tools that best match the user's request.
 """
         
         return [

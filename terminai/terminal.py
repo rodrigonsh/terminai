@@ -21,6 +21,7 @@ from .mcp.client import MCPClient
 from .utils.bash import BashExecutor
 from .tools.manager import ToolManager
 from .tools.builtin import BuiltinTools
+from .tools.mcp_tools import MCPToolWrapper
 
 
 class TerminaiTerminal:
@@ -37,6 +38,7 @@ class TerminaiTerminal:
         )
         self.tool_manager = ToolManager()
         self.builtin_tools = BuiltinTools(self.bash_executor)
+        self.mcp_tool_wrapper = MCPToolWrapper(self.mcp_client)
         
         # Setup logging
         log_level = logging.INFO
@@ -54,6 +56,9 @@ class TerminaiTerminal:
         
         # Setup tools
         self.setup_tools()
+        
+        # Setup MCP servers
+        self.setup_mcp_servers()
         
         # Current LLM provider
         self.current_provider = None
@@ -111,6 +116,46 @@ class TerminaiTerminal:
         if self.current_provider and not self.current_provider.is_configured():
             self.console.print(f"[yellow]Warning: Provider '{provider_name}' is not properly configured[/yellow]")
             self.console.print(f"[yellow]Please set the required API keys in {self.config.config_file}[/yellow]")
+
+    def setup_mcp_servers(self):
+        """Setup and connect to configured MCP servers."""
+        mcp_servers = self.config.get("mcp.servers", [])
+        if not mcp_servers:
+            return
+        
+        # Store servers for later connection
+        self._mcp_servers_to_connect = mcp_servers
+    
+    async def _connect_mcp_servers_async(self):
+        """Asynchronously connect to MCP servers."""
+        servers = getattr(self, '_mcp_servers_to_connect', [])
+        if not servers:
+            return
+            
+        for server_config in servers:
+            try:
+                name = server_config.get("name")
+                if not name:
+                    self.console.print("[yellow]Warning: MCP server missing name in configuration[/yellow]")
+                    continue
+                
+                self.console.print(f"[blue]Connecting to MCP server: {name}[/blue]")
+                success = await self.mcp_client.connect_server(name, server_config)
+                
+                if success:
+                    self.console.print(f"[green]✓ Connected to MCP server: {name}[/green]")
+                    
+                    # Register MCP tools from this server
+                    try:
+                        await self.mcp_tool_wrapper.discover_and_register_tools(self.tool_manager, name)
+                        self.console.print(f"[green]✓ Registered tools from MCP server: {name}[/green]")
+                    except Exception as tool_error:
+                        self.console.print(f"[yellow]Warning: Failed to register tools from {name}: {tool_error}[/yellow]")
+                else:
+                    self.console.print(f"[red]✗ Failed to connect to MCP server: {name}[/red]")
+                    
+            except Exception as e:
+                self.console.print(f"[red]Error connecting to MCP server {server_config.get('name', 'unknown')}: {e}[/red]")
     
     async def process_input(self, user_input: str) -> bool:
         """Process user input."""
@@ -337,17 +382,32 @@ class TerminaiTerminal:
             self.console.print("[bold]Tool Commands:[/bold]")
             self.console.print("  !tools list          List available tools")
             self.console.print("  !tools info <tool>   Show tool information")
+            self.console.print("  !tools refresh       Refresh MCP tools from all servers")
             return
         
         cmd = args[0].lower()
         
         if cmd == "list":
-            tools = self.tool_manager.list_tools()
-            if tools:
-                self.console.print("[bold]Available Tools:[/bold]")
-                for tool in tools:
+            tools_by_type = self.tool_manager.list_tools_by_type()
+            
+            if tools_by_type["builtin"]:
+                self.console.print("[bold]Builtin Tools:[/bold]")
+                for tool in tools_by_type["builtin"]:
                     self.console.print(f"  - {tool}")
-            else:
+            
+            if tools_by_type["mcp"]:
+                self.console.print("\n[bold]MCP Tools:[/bold]")
+                for tool in tools_by_type["mcp"]:
+                    # Extract server name from tool name (format: mcp_server_toolname)
+                    parts = tool.split("_", 2)
+                    if len(parts) >= 3:
+                        server_name = parts[1]
+                        original_name = parts[2]
+                        self.console.print(f"  - {tool} (from {server_name}: {original_name})")
+                    else:
+                        self.console.print(f"  - {tool}")
+            
+            if not tools_by_type["builtin"] and not tools_by_type["mcp"]:
                 self.console.print("[yellow]No tools available[/yellow]")
         
         elif cmd == "info" and len(args) > 1:
@@ -362,6 +422,21 @@ class TerminaiTerminal:
                     self.console.print(f"  {param_name} ({param_info['type']}, {required}): {param_info['description']}")
             else:
                 self.console.print(f"[red]Tool '{tool_name}' not found[/red]")
+        
+        elif cmd == "refresh":
+            self.console.print("[blue]Refreshing MCP tools from all connected servers...[/blue]")
+            servers = self.mcp_client.get_connected_servers()
+            
+            if not servers:
+                self.console.print("[yellow]No MCP servers connected[/yellow]")
+                return
+            
+            for server_name in servers:
+                try:
+                    await self.mcp_tool_wrapper.refresh_server_tools(self.tool_manager, server_name)
+                    self.console.print(f"[green]✓ Refreshed tools from {server_name}[/green]")
+                except Exception as e:
+                    self.console.print(f"[red]✗ Failed to refresh tools from {server_name}: {e}[/red]")
     
     async def handle_mcp_command(self, args: list):
         """Handle MCP-related commands."""
@@ -399,6 +474,9 @@ class TerminaiTerminal:
         """Run the terminal."""
         self.console.print("[bold green]Welcome to Terminai![/bold green]")
         self.console.print("Type !help for commands, or just start typing!")
+        
+        # Connect to MCP servers
+        await self._connect_mcp_servers_async()
         
         prompt = self.config.get_prompt()
         

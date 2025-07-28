@@ -130,9 +130,35 @@ class ToolManager:
                 error=str(e)
             )
     
+    def unregister_tool(self, name: str) -> bool:
+        """Unregister a tool."""
+        if name in self.tools:
+            del self.tools[name]
+            if name in self.executors:
+                del self.executors[name]
+            logger.info(f"Unregistered tool: {name}")
+            return True
+        return False
+    
     def list_tools(self) -> List[str]:
         """List all registered tools."""
         return list(self.tools.keys())
+    
+    def list_tools_by_type(self) -> Dict[str, List[str]]:
+        """List tools grouped by type (builtin vs MCP)."""
+        builtin_tools = []
+        mcp_tools = []
+        
+        for tool_name in self.tools.keys():
+            if tool_name.startswith("mcp_"):
+                mcp_tools.append(tool_name)
+            else:
+                builtin_tools.append(tool_name)
+        
+        return {
+            "builtin": sorted(builtin_tools),
+            "mcp": sorted(mcp_tools)
+        }
     
     def get_tool_info(self, name: str) -> Optional[Dict[str, Any]]:
         """Get information about a specific tool."""

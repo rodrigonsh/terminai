@@ -1,3 +1,4 @@
+LICENSE
 README.md
 setup.py
 terminai/__init__.py
@@ -21,8 +22,15 @@ terminai/llm/providers/openai_provider.py
 terminai/llm/providers/openrouter_provider.py
 terminai/mcp/__init__.py
 terminai/mcp/client.py
+terminai/mcp/exceptions.py
+terminai/mcp/connections/__init__.py
+terminai/mcp/connections/base.py
+terminai/mcp/connections/http_connection.py
+terminai/mcp/connections/sse_connection.py
+terminai/mcp/connections/stdio_connection.py
 terminai/tools/__init__.py
 terminai/tools/builtin.py
 terminai/tools/manager.py
+terminai/tools/mcp_tools.py
 terminai/utils/__init__.py
 terminai/utils/bash.py
